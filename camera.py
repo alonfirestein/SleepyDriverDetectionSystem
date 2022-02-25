@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import cv2
+import playsound
 
 
 # Importing haar cascade files for face and eye classifier
@@ -62,7 +63,8 @@ def detect_eyes(cap):
                 # Boolean flag to play alarm, sound will play until driver is awake for several consecutive seconds
                 # meaning until the opened_eyes_counter meets its threshold to turn off the alarm
                 if ALARM_ON:
-                    os.system("say beep")  # On mac: Says beep when eyes closed (funny, but delete for deployment)
+                    # os.system("say beep")  # On mac: Says beep when eyes closed (funny, but delete for deployment)
+                    playsound.playsound("alarms/alarm_0.5seconds.wav")
 
                 frame_tmp = cv2.resize(frame_tmp, (400, 400), interpolation=cv2.INTER_LINEAR)
                 cv2.imshow('Drowsiness Detector', frame_tmp)
