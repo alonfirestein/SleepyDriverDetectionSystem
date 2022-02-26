@@ -10,6 +10,7 @@ face_cascade = cv2.CascadeClassifier('cascade_files/haarcascade_frontalface_defa
 eye_cascade = cv2.CascadeClassifier('cascade_files/haarcascade_eye.xml')
 open_closed = cv2.CascadeClassifier('cascade_files/haarcascade_openclosed_eyes.xml')
 
+# Global variables
 open_camera = True
 closed_eyes_threshold = 5
 ALARM_ON = False
@@ -17,9 +18,9 @@ ALARM_ON = False
 
 def start_camera(URL):
     cap = cv2.VideoCapture(URL)
-    # Check if the webcam is opened correctly
+    # Check if the camera is opened correctly
     if not cap.isOpened():
-        raise IOError("Cannot open webcam")
+        raise IOError("Cannot open camera")
 
     return cap
 
@@ -36,7 +37,7 @@ def detect_eyes(cap):
             face = face_cascade.detectMultiScale(frame, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
             face_identified = len(face) > 0
             if face_identified:
-                # Draw a rectangle around the faces
+                # Draw a rectangle around the face to focus on it
                 for (x, y, w, h) in face:
                     cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
                 frame_tmp = img[face[0][1]:face[0][1] + face[0][3], face[0][0]:face[0][0] + face[0][2]:1, :]
