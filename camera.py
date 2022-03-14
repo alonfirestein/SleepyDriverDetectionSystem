@@ -4,7 +4,7 @@ import cv2
 import playsound
 
 
-# Importing haar cascade files for face and eye classifier
+# Importing haar_cascade_files for face and eye classifier
 # https://docs.opencv.org/3.4/db/d28/tutorial_cascade_classifier.html
 face_cascade = cv2.CascadeClassifier('cascade_files/haarcascade_frontalface_default.xml')
 eye_cascade = cv2.CascadeClassifier('cascade_files/haarcascade_eye.xml')
@@ -34,7 +34,10 @@ def detect_eyes(cap):
             # Convert frame to grayscale to identify face better
             frame = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             # Detect faces in the image
-            face = face_cascade.detectMultiScale(frame, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+            face = face_cascade.detectMultiScale(frame,
+                                                 scaleFactor=1.1,
+                                                 minNeighbors=5,
+                                                 minSize=(30, 30))
             face_identified = len(face) > 0
             if face_identified:
                 # Draw a rectangle around the face to focus on it
@@ -42,7 +45,13 @@ def detect_eyes(cap):
                     cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
                 frame_tmp = img[face[0][1]:face[0][1] + face[0][3], face[0][0]:face[0][0] + face[0][2]:1, :]
                 frame = frame[face[0][1]:face[0][1] + face[0][3], face[0][0]:face[0][0] + face[0][2]:1]
-                eyes = open_closed.detectMultiScale(frame, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+                eyes = open_closed.detectMultiScale(frame,
+                                                    scaleFactor=1.1,
+                                                    minNeighbors=3,
+                                                    minSize=(30, 30))
+                # Draw red rectangles around detected eyes
+                for (x, y, w, h) in eyes:
+                    cv2.rectangle(frame_tmp, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
                 if len(eyes) == 0:
                     closed_eyes_counter += 1
@@ -54,12 +63,12 @@ def detect_eyes(cap):
 
                 print(f"Closed: {closed_eyes_counter}, Open: {opened_eyes_counter}")
                 # If our closed eyes counter meets the threshold: We play the alarm to wake up the driver!
-                if closed_eyes_counter == closed_eyes_threshold:
+                if closed_eyes_counter >= closed_eyes_threshold:
                     ALARM_ON = True
 
                 # If the driver is awake for consecutive countings, we reinitialize the counters
                 # and turn off the alarm if it's on
-                if opened_eyes_counter == 10:
+                if opened_eyes_counter == 5:
                     closed_eyes_counter = 0
                     opened_eyes_counter = 0
                     ALARM_ON = False
@@ -67,12 +76,11 @@ def detect_eyes(cap):
                 # Boolean flag to play alarm, sound will play until driver is awake for several consecutive seconds
                 # meaning until the opened_eyes_counter meets its threshold to turn off the alarm
                 if ALARM_ON:
-                    # os.system("say beep")  # On mac: Says beep when eyes closed (funny, but delete for deployment)
-                    playsound.playsound("alarms/alarm_0.5seconds.wav")
+                    playsound.playsound("alarms/alarm_0.25.wav")
                     put_alert_text(img)
 
-                frame_tmp = cv2.resize(frame_tmp, (400, 400), interpolation=cv2.INTER_LINEAR)
-                cv2.imshow('Drowsiness Detector', frame_tmp)
+                frame_tmp = cv2.resize(frame_tmp, (600, 600), interpolation=cv2.INTER_LINEAR)
+                cv2.imshow('Drowsiness Detector', img)
 
         k = cv2.waitKey(30) & 0xff
         if k == 27:
