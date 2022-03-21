@@ -1,15 +1,14 @@
 from datetime import datetime
 import cv2
 import os
-from eye_detection import eye_aspect_ratio
 from keras.models import load_model
 import numpy as np
 import pandas as pd
 import playsound
-import csv
 import os.path
 import traceback
 import time
+
 
 # Importing haar_cascade_files for face and eye classifier
 # https://docs.opencv.org/3.4/db/d28/tutorial_cascade_classifier.html
@@ -19,9 +18,11 @@ r_eye_cascade = cv2.CascadeClassifier('cascade_files/haarcascade_righteye_2split
 l_eye_cascade = cv2.CascadeClassifier('cascade_files/haarcascade_lefteye_2splits.xml')
 open_closed = cv2.CascadeClassifier('cascade_files/haarcascade_openclosed_eyes.xml')
 
+
 labels = ['Closed', 'Open']
 model = load_model('models/cnncat2.h5')
 path = os.getcwd()
+
 
 # Global variables
 open_camera = True
@@ -56,7 +57,6 @@ def detection(cap):
     started = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     while True:
-        thicc = 2
         right_eye_prediction, left_eye_prediction = [99], [99]
         ret, frame = cap.read()
         frame = cv2.resize(frame, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
@@ -72,7 +72,7 @@ def detection(cap):
         right_eye = r_eye_cascade.detectMultiScale(gray)
 
         # Draw a small rectangle for the scores in the bottom left corner
-        cv2.rectangle(frame, (0, height - 50), (200, height), (0, 0, 0), thickness=cv2.FILLED)
+        cv2.rectangle(frame, (0, height - 50), (450, height), (0, 0, 0), thickness=cv2.FILLED)
 
         # Draw a rectangle around the detected faces
         for (x, y, w, h) in faces:
@@ -94,7 +94,7 @@ def detection(cap):
 
         for (x, y, w, h) in right_eye:
             r_eye = frame[y:y + h, x:x + w]
-            count = count + 1
+            count += 1
             r_eye = cv2.cvtColor(r_eye, cv2.COLOR_BGR2GRAY)
             r_eye = cv2.resize(r_eye, (24, 24))
             r_eye = r_eye / 255
@@ -112,7 +112,7 @@ def detection(cap):
 
         for (x, y, w, h) in left_eye:
             l_eye = frame[y:y + h, x:x + w]
-            count = count + 1
+            count += 1
             l_eye = cv2.cvtColor(l_eye, cv2.COLOR_BGR2GRAY)
             l_eye = cv2.resize(l_eye, (24, 24))
             l_eye = l_eye / 255
@@ -124,38 +124,36 @@ def detection(cap):
             if left_eye_prediction.all() == 1:
                 left_eye_label = 'Open'
                 left_eye_counter["left_eye_open"] += 1
+
             if left_eye_prediction.all() == 0:
                 left_eye_label = 'Closed'
                 left_eye_counter["left_eye_closed"] += 1
             break
-        font = cv2.FONT_HERSHEY_COMPLEX_SMALL
 
+        font = cv2.FONT_HERSHEY_COMPLEX_SMALL
         if right_eye_prediction[0] == 0 and left_eye_prediction[0] == 0:
             drowsiness_score += 1
-            cv2.putText(frame, "Closed", (10, height - 20), font, 1, (255, 255, 255), 1, cv2.LINE_AA)
+            cv2.putText(frame, "Eyes: Closed", (10, height - 20), font, 1, (255, 255, 255), 1, cv2.LINE_AA)
         else:
             drowsiness_score -= 1
-            cv2.putText(frame, "Open", (10, height - 20), font, 1, (255, 255, 255), 1, cv2.LINE_AA)
+            cv2.putText(frame, "Eyes: Open", (10, height - 20), font, 1, (255, 255, 255), 1, cv2.LINE_AA)
 
         if drowsiness_score < 0:
             drowsiness_score = 0
-        cv2.putText(frame, 'Drowsiness Score:' + str(drowsiness_score), (100, height - 20), font, 1, (255, 255, 255), 1, cv2.LINE_AA)
+
+        cv2.putText(frame, 'Drowsiness Score:' + str(drowsiness_score), (170, height - 20), font, 1, (255, 255, 255), 1, cv2.LINE_AA)
 
         # If we detect that the driver is sleepy, we play the alarm to wake them up
+        captured_photo = False
         if drowsiness_score >= closed_eyes_threshold:
-            # cv2.imwrite(os.path.join(path, 'image.jpg'), frame)
+            if not captured_photo:
+                cv2.imwrite(os.path.join(path, 'sleeping_driver.jpg'), frame)
+                captured_photo = True
             try:
                 playsound.playsound("alarms/alarm_0.25.wav")
+                put_alert_text(frame)
             except Exception as e:
                 traceback.print_exc()
-
-            if thicc < 16:
-                thicc += 2
-            else:
-                thicc -= 2
-                if thicc < 2:
-                    thicc = 2
-            cv2.rectangle(frame, (0, 0), (width, height), (0, 0, 255), thicc)
 
         cv2.imshow('Drowsiness Detector', frame)
         k = cv2.waitKey(30) & 0xff
@@ -187,3 +185,17 @@ def detection(cap):
     for col, val in zip(columns, data):
         print(f"{col}: {val}")
     update_database("drowsiness_detection_data.csv", columns, data)
+
+
+# Put text on image when an alarm is playing to wake up the driver
+def put_alert_text(img):
+    # Text details
+    text = 'WAKE UP!'
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    fontScale = 1
+    fontColor = (0, 0, 255)
+    lineType = 2
+    text_width, text_height = cv2.getTextSize(text, font, fontScale, lineType)[0]
+    CenterCoordinates = (int(img.shape[1] / 2) - int(text_width / 2), int(img.shape[0] / 2) - int(text_height / 2))
+
+    return cv2.putText(img, text, CenterCoordinates, font, fontScale, fontColor, lineType)
