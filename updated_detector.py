@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import playsound
 import os.path
+from csv import writer
 import traceback
 import time
 
@@ -45,11 +46,13 @@ def start_camera(URL):
 def update_database(file_path, columns, data):
     if not os.path.isfile(file_path):
         df = pd.DataFrame([data], columns=columns)
-    else:
-        df = pd.read_csv(file_path)
-        df = df.append([data], ignore_index=True)
+        df.to_csv(file_path)
 
-    df.to_csv(file_path)
+    else:
+        with open(file_path, 'a', newline='') as csv_file:
+            writer_object = writer(csv_file)
+            writer_object.writerow(data)
+
 
 
 def detection(cap):
@@ -141,11 +144,12 @@ def detection(cap):
         if drowsiness_score < 0:
             drowsiness_score = 0
 
-        cv2.putText(frame, 'Drowsiness Score:' + str(drowsiness_score), (170, height - 20), font, 1, (255, 255, 255), 1, cv2.LINE_AA)
+        cv2.putText(frame, 'Drowsiness Score:' + str(drowsiness_score), (175, height - 20), font, 1, (255, 255, 255), 1, cv2.LINE_AA)
 
         # If we detect that the driver is sleepy, we play the alarm to wake them up
         captured_photo = False
         if drowsiness_score >= closed_eyes_threshold:
+            # Capturing a photo of the sleepy driver as proof of their drowsiness
             if not captured_photo:
                 cv2.imwrite(os.path.join(path, 'sleeping_driver.jpg'), frame)
                 captured_photo = True
