@@ -3,7 +3,6 @@ import numpy as np
 import cv2
 import playsound
 
-
 # Importing haar_cascade_files for face and eye classifier
 # https://docs.opencv.org/3.4/db/d28/tutorial_cascade_classifier.html
 face_cascade = cv2.CascadeClassifier('cascade_files/haarcascade_frontalface_default.xml')
@@ -31,24 +30,27 @@ def detect_eyes(cap):
     while open_camera:
         ret, img = cap.read()
         if ret:
-            # Convert frame to grayscale to identify face better
+            # Convert frame to grayscale to identify faces better
             frame = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             # Detect faces in the image
-            face = face_cascade.detectMultiScale(frame,
-                                                 scaleFactor=1.1,
-                                                 minNeighbors=5,
-                                                 minSize=(30, 30))
-            face_identified = len(face) > 0
+            faces = face_cascade.detectMultiScale(frame,
+                                                  scaleFactor=1.1,
+                                                  minNeighbors=5,
+                                                  minSize=(30, 30))
+            face_identified = len(faces) > 0
             if face_identified:
-                # Draw a rectangle around the face to focus on it
-                for (x, y, w, h) in face:
+                # Draw a rectangle around the faces to focus on it
+                for (x, y, w, h) in faces:
                     cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
-                frame_tmp = img[face[0][1]:face[0][1] + face[0][3], face[0][0]:face[0][0] + face[0][2]:1, :]
-                frame = frame[face[0][1]:face[0][1] + face[0][3], face[0][0]:face[0][0] + face[0][2]:1]
+                frame_tmp = img[faces[0][1]:faces[0][1] + faces[0][3], faces[0][0]:faces[0][0] + faces[0][2]:1, :]
+                frame = frame[faces[0][1]:faces[0][1] + faces[0][3], faces[0][0]:faces[0][0] + faces[0][2]:1]
                 eyes = open_closed.detectMultiScale(frame,
                                                     scaleFactor=1.1,
-                                                    minNeighbors=3,
+                                                    minNeighbors=5,
                                                     minSize=(30, 30))
+                if len(eyes) == 0:
+                    print('No Eye Detected')
+
                 # Draw red rectangles around detected eyes
                 for (x, y, w, h) in eyes:
                     cv2.rectangle(frame_tmp, (x, y), (x + w, y + h), (0, 0, 255), 2)
@@ -103,4 +105,3 @@ def put_alert_text(img):
     CenterCoordinates = (int(img.shape[1] / 2) - int(text_width / 2), int(img.shape[0] / 2) - int(text_height / 2))
 
     return cv2.putText(img, text, CenterCoordinates, font, fontScale, fontColor, lineType)
-
