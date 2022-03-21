@@ -26,6 +26,7 @@ path = os.getcwd()
 # Global variables
 open_camera = True
 ALARM_ON = False
+closed_eyes_threshold = 5
 count, score = 0, 0
 right_eye_counter = {"right_eye_open": 0, "right_eye_closed": 0}
 left_eye_counter = {"left_eye_open": 0, "left_eye_closed": 0}
@@ -141,7 +142,7 @@ def detection(cap):
         cv2.putText(frame, 'Score:' + str(score), (100, height - 20), font, 1, (255, 255, 255), 1, cv2.LINE_AA)
 
         # If we detect that the driver is sleepy, we play the alarm to wake them up
-        if score > 15:
+        if score >= closed_eyes_threshold:
             # cv2.imwrite(os.path.join(path, 'image.jpg'), frame)
             try:
                 playsound.playsound("alarms/alarm_0.25.wav")
