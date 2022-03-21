@@ -182,5 +182,7 @@ def detection(cap):
             left_eye_counter["left_eye_closed"]
             ]
 
-    print(f"Data: {data}")
+    print("Drowsiness Summary:")
+    for col, val in zip(columns, data):
+        print(f"{col}: {val}")
     update_database("drowsiness_detection_data.csv", columns, data)
