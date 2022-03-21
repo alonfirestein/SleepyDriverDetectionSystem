@@ -27,7 +27,7 @@ path = os.getcwd()
 open_camera = True
 ALARM_ON = False
 closed_eyes_threshold = 5
-count, score = 0, 0
+count, drowsiness_score = 0, 0
 right_eye_counter = {"right_eye_open": 0, "right_eye_closed": 0}
 left_eye_counter = {"left_eye_open": 0, "left_eye_closed": 0}
 
@@ -52,7 +52,7 @@ def update_database(file_path, columns, data):
 
 
 def detection(cap):
-    global open_camera, ALARM_ON, score, count, right_eye_counter, left_eye_counter
+    global open_camera, ALARM_ON, drowsiness_score, count, right_eye_counter, left_eye_counter
     started = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     while True:
@@ -131,18 +131,18 @@ def detection(cap):
         font = cv2.FONT_HERSHEY_COMPLEX_SMALL
 
         if right_eye_prediction[0] == 0 and left_eye_prediction[0] == 0:
-            score += 1
+            drowsiness_score += 1
             cv2.putText(frame, "Closed", (10, height - 20), font, 1, (255, 255, 255), 1, cv2.LINE_AA)
         else:
-            score = score - 1
+            drowsiness_score -= 1
             cv2.putText(frame, "Open", (10, height - 20), font, 1, (255, 255, 255), 1, cv2.LINE_AA)
 
-        if score < 0:
-            score = 0
-        cv2.putText(frame, 'Score:' + str(score), (100, height - 20), font, 1, (255, 255, 255), 1, cv2.LINE_AA)
+        if drowsiness_score < 0:
+            drowsiness_score = 0
+        cv2.putText(frame, 'Drowsiness Score:' + str(drowsiness_score), (100, height - 20), font, 1, (255, 255, 255), 1, cv2.LINE_AA)
 
         # If we detect that the driver is sleepy, we play the alarm to wake them up
-        if score >= closed_eyes_threshold:
+        if drowsiness_score >= closed_eyes_threshold:
             # cv2.imwrite(os.path.join(path, 'image.jpg'), frame)
             try:
                 playsound.playsound("alarms/alarm_0.25.wav")
