@@ -29,7 +29,7 @@ path = os.getcwd()
 open_camera = True
 ALARM_ON = False
 closed_eyes_threshold = 5
-count, drowsiness_score = 0, 0
+count, drowsiness_score, alarm_activated_counter, faces_detected = 0, 0, 0, 0
 right_eye_counter = {"right_eye_open": 0, "right_eye_closed": 0}
 left_eye_counter = {"left_eye_open": 0, "left_eye_closed": 0}
 
@@ -54,10 +54,10 @@ def update_database(file_path, columns, data):
             writer_object.writerow(data)
 
 
-
 def detection(cap):
-    global open_camera, ALARM_ON, drowsiness_score, count, right_eye_counter, left_eye_counter
-    started = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    global open_camera, ALARM_ON, drowsiness_score, count, right_eye_counter,\
+           left_eye_counter, alarm_activated_counter, faces_detected
+    started, timer = datetime.now().strftime('%Y-%m-%d %H:%M:%S'), time.time()
 
     while True:
         right_eye_prediction, left_eye_prediction = [99], [99]
@@ -71,6 +71,7 @@ def detection(cap):
                                               minNeighbors=5,
                                               minSize=(30, 30))
 
+        faces_detected = max(len(faces), faces_detected)
         left_eye = l_eye_cascade.detectMultiScale(gray)
         right_eye = r_eye_cascade.detectMultiScale(gray)
 
@@ -108,6 +109,7 @@ def detection(cap):
             if right_eye_prediction.all() == 1:
                 right_eye_label = 'Open'
                 right_eye_counter["right_eye_open"] += 1
+
             if right_eye_prediction.all() == 0:
                 right_eye_label = 'Closed'
                 right_eye_counter["right_eye_closed"] += 1
@@ -149,6 +151,7 @@ def detection(cap):
         # If we detect that the driver is sleepy, we play the alarm to wake them up
         captured_photo = False
         if drowsiness_score >= closed_eyes_threshold:
+            alarm_activated_counter += 1
             # Capturing a photo of the sleepy driver as proof of their drowsiness
             if not captured_photo:
                 cv2.imwrite(os.path.join(path, 'sleeping_driver.jpg'), frame)
@@ -156,6 +159,7 @@ def detection(cap):
             try:
                 playsound.playsound("alarms/alarm_0.25.wav")
                 put_alert_text(frame)
+
             except Exception as e:
                 traceback.print_exc()
 
@@ -168,21 +172,28 @@ def detection(cap):
     cap.release()
     cv2.destroyAllWindows()
     ended = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
+    # Total program duration in seconds
+    total_duration = float("{0:.4f}".format(time.time() - timer))
     # Update database from last run
     columns = ["started",
                "ended",
+               "total_duration",
                "right_eye_open",
                "right_eye_closed",
                "left_eye_open",
-               "left_eye_closed"]
+               "left_eye_closed",
+               "faces_detected",
+               "alarm_activated_counter"]
 
     data = [started,
             ended,
+            total_duration,
             right_eye_counter["right_eye_open"],
             right_eye_counter["right_eye_closed"],
             left_eye_counter["left_eye_open"],
-            left_eye_counter["left_eye_closed"]
+            left_eye_counter["left_eye_closed"],
+            faces_detected,
+            alarm_activated_counter
             ]
 
     print("Drowsiness Summary:")
@@ -203,3 +214,5 @@ def put_alert_text(img):
     CenterCoordinates = (int(img.shape[1] / 2) - int(text_width / 2), int(img.shape[0] / 2) - int(text_height / 2))
 
     return cv2.putText(img, text, CenterCoordinates, font, fontScale, fontColor, lineType)
+
+
