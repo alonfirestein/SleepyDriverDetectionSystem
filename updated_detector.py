@@ -13,6 +13,7 @@ import time
 
 # Importing haar_cascade_files for face and eye classifier
 # https://docs.opencv.org/3.4/db/d28/tutorial_cascade_classifier.html
+# https://github.com/opencv/opencv/tree/master/data/haarcascades
 face_cascade = cv2.CascadeClassifier('cascade_files/haarcascade_frontalface_default.xml')
 eye_cascade = cv2.CascadeClassifier('cascade_files/haarcascade_eye.xml')
 r_eye_cascade = cv2.CascadeClassifier('cascade_files/haarcascade_righteye_2splits.xml')
@@ -29,7 +30,7 @@ path = os.getcwd()
 open_camera = True
 ALARM_ON = False
 closed_eyes_threshold = 5
-count, drowsiness_score, alarm_activated_counter, faces_detected = 0, 0, 0, 0
+count, drowsiness_score, alarm_activated_counter = 0, 0, 0
 right_eye_counter = {"right_eye_open": 0, "right_eye_closed": 0}
 left_eye_counter = {"left_eye_open": 0, "left_eye_closed": 0}
 
@@ -56,7 +57,7 @@ def update_database(file_path, columns, data):
 
 def detection(cap):
     global open_camera, ALARM_ON, drowsiness_score, count, right_eye_counter,\
-           left_eye_counter, alarm_activated_counter, faces_detected
+           left_eye_counter, alarm_activated_counter
     started, timer = datetime.now().strftime('%Y-%m-%d %H:%M:%S'), time.time()
 
     while True:
@@ -71,7 +72,6 @@ def detection(cap):
                                               minNeighbors=5,
                                               minSize=(30, 30))
 
-        faces_detected = max(len(faces), faces_detected)
         left_eye = l_eye_cascade.detectMultiScale(gray)
         right_eye = r_eye_cascade.detectMultiScale(gray)
 
@@ -182,7 +182,6 @@ def detection(cap):
                "right_eye_closed",
                "left_eye_open",
                "left_eye_closed",
-               "faces_detected",
                "alarm_activated_counter"]
 
     data = [started,
@@ -192,7 +191,6 @@ def detection(cap):
             right_eye_counter["right_eye_closed"],
             left_eye_counter["left_eye_open"],
             left_eye_counter["left_eye_closed"],
-            faces_detected,
             alarm_activated_counter
             ]
 
