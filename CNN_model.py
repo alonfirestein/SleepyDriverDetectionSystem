@@ -1,5 +1,5 @@
 import cv2
-from keras.preprocessing import image
+from keras.preprocessing.image import ImageDataGenerator
 import matplotlib.pyplot as plt
 import numpy as np
 from keras.models import Sequential
@@ -20,11 +20,12 @@ def read_image(path):
 
 def generate_data(data_type):
     """
-    Function that generates a Tensorflow dataset from the images in the input directory for training/testing images
+    Function that generates a Tensorflow dataset from the images in the input directory for training/testing images.
+    https://keras.io/api/preprocessing/image/
     :param data_type: training or testing
     :return:
     """
-    gen = image.ImageDataGenerator(rescale=1.0 / 255)
+    gen = ImageDataGenerator(rescale=1.0/255)
     if data_type.lower().strip() in ["train", "test"]:
         return gen.flow_from_directory(
             f"data/{data_type}",
