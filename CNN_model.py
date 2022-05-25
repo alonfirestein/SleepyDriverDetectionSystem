@@ -1,87 +1,113 @@
 import cv2
-import pandas as pd
-import numpy as np
+from keras.preprocessing import image
 import matplotlib.pyplot as plt
-import os
-import random
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
+import numpy as np
+from keras.models import Sequential
+from keras.layers import Dropout, Conv2D, Flatten, Dense, MaxPooling2D
 
 
 def read_image(path):
+    """
+    Function that reads an image from the input path and shows it as an example for an image from the data
+    :param path: The path to the image
+    :return:
+    """
     img_array = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
     print(f"Image shape: {img_array.shape}")
     plt.imshow(img_array, cmap="gray")
     plt.show()
 
 
-# Transform images to grayscale and to fixed size of 224
-def transform_images(directory, classes):
-    img_size = 224
-    for category in classes:
-        path = os.path.join(directory, category)
-        for img in os.listdir(path):
-            # cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            new_image = cv2.resize(cv2.imread(os.path.join(path, img), cv2.IMREAD_GRAYSCALE), (img_size, img_size))
-            # plt.imshow(new_image, cmap="gray")
-            # plt.show()
-            # break
+def generate_data(data_type):
+    """
+    Function that generates a Tensorflow dataset from the images in the input directory for training/testing images
+    :param data_type: training or testing
+    :return:
+    """
+    gen = image.ImageDataGenerator(rescale=1.0 / 255)
+    if data_type.lower().strip() in ["train", "test"]:
+        return gen.flow_from_directory(
+            f"data/{data_type}",
+            batch_size=1,
+            shuffle=True,
+            color_mode="grayscale",
+            class_mode="categorical",
+            target_size=(24, 24),
+        )
+    else:
+        raise TypeError("Wrong input entered in 'generate_data' function!")
 
 
-def create_training_data(directory, classes):
-    training_data = []
-    img_size = 224
-    for category in classes:
-        path = os.path.join(directory, category)
-        class_num = classes.index(category)
-        for img in os.listdir(path):
-            try:
-                img = cv2.resize(cv2.imread(os.path.join(path, img), cv2.IMREAD_GRAYSCALE), (img_size, img_size))
-                training_data.append([img, class_num])
+class CNN:
 
-            except Exception as e:
-                pass
+    def __init__(self, X, y, steps_per_epoch, val_steps, epochs=50):
+        self.X = X
+        self.y = y
+        self.epochs = epochs
+        self.steps_per_epoch = steps_per_epoch
+        self.val_steps = val_steps
+        self.model = None
+        self.history = None
 
-    return training_data
+    def train_model(self):
+        self.model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
+        self.history = self.model.fit(self.X,
+                                      validation_data=self.y,
+                                      epochs=self.epochs,
+                                      steps_per_epoch=self.steps_per_epoch,
+                                      validation_steps=self.val_steps)
 
+    def create_model(self):
+        self.model = Sequential()
+        self.model.add(Conv2D(32, kernel_size=(3, 3), activation="relu", input_shape=(24, 24, 1)))
+        self.model.add(MaxPooling2D(pool_size=(1, 1)))
 
-def create_model(X, y):
-    model = tf.keras.applications.mobilenet.MobileNet()
-    print(f"Model Summary:\n{model.summary()}")
+        self.model.add(Conv2D(32, (3, 3), activation="relu"))
+        self.model.add(MaxPooling2D(pool_size=(1, 1)))
 
-    base_input = model.layers[0].input
-    base_output = model.layers[-4].output
-    Flat_layer = layers.Flatten()(base_output)
-    final_output = layers.Dense(1)(Flat_layer)
-    final_output = layers.Activation('sigmoid')(final_output)
+        self.model.add(Conv2D(64, (3, 3), activation="relu"))
+        self.model.add(MaxPooling2D(pool_size=(1, 1)))
+        self.model.add(Dropout(0.25))
+        self.model.add(Flatten())
 
-    new_model = keras.Model(inputs=base_input, outputs=final_output)
-    print(f"New Model Summary:\n{new_model.summary()}")
+        self.model.add(Dense(128, activation='relu'))
+        self.model.add(Dropout(0.5))
+        self.model.add(Dense(4, activation="softmax"))
 
-    new_model.compile(loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"])
-    new_model.fit(X, y, epochs=10, validation_split=0.1)
-    # new_model.save('drowsiness_detector_model.h5')
+        self.model.summary()
 
+    def save_model(self, file_name):
+        self.model.save(file_name + ".h5", overwrite=True)
 
-def test_model(image_path):
-    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-    new_array = cv2.resize(image, (224, 224))
+    def plot_accuracy_and_loss(self):
+        plt.plot(self.history.history['accuracy'], label='accuracy', color='blue')
+        plt.title('Model Accuracy')
+        plt.ylabel('Accuracy')
+        plt.xlabel('epoch')
+        plt.show()
+
+        plt.plot(self.history.history['loss'], label='loss', color='red')
+        plt.title('Model Loss')
+        plt.ylabel('Loss')
+        plt.xlabel('epoch')
+        plt.show()
 
 
 if __name__ == '__main__':
     directory_path = "data/train"
     classes = ['Closed_Eyes', 'Open_Eyes']
-    # image_path = 'data/train/Closed_Eyes/s0001_00001_0_0_0_0_0_01.png'
-    # read_image(image_path)
+    image_path = 'data/train/Closed/_0.jpg'
+    read_image(image_path)
 
-    # transform_images(directory_path, classes)
-    training_data = create_training_data(directory_path, classes)
-    print(len(training_data))
-    random.shuffle(training_data)
-    X, y = list(), list()
-    for features, label in training_data:
-        X.append(features)
-        y.append(label)
+    batch_size = 32
+    X, y = generate_data("train"), generate_data("test")
+    steps_per_epoch = len(X.classes) // batch_size
+    val_steps = len(y.classes) // batch_size
+    print(f"SPE: {steps_per_epoch} - Validation Steps: {val_steps}")
 
-    create_model(X, y)
+    img, labels = next(X)
+    cnn = CNN(X, y, steps_per_epoch=steps_per_epoch, val_steps=val_steps, epochs=100)
+    cnn.create_model()
+    cnn.train_model()
+    cnn.plot_accuracy_and_loss()
+    cnn.save_model(file_name="models/drowsiness_detector_model2")

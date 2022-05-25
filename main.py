@@ -8,4 +8,3 @@ if __name__ == '__main__':
     URL = 0
     cap = start_camera(URL)
     detection(cap)
-    # detect_eyes(cap)

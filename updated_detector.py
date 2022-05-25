@@ -22,7 +22,7 @@ open_closed = cv2.CascadeClassifier('cascade_files/haarcascade_openclosed_eyes.x
 
 
 labels = ['Closed', 'Open']
-model = load_model('models/cnncat2.h5')
+model = load_model('models/drowsiness_detector_model.h5')
 path = os.getcwd()
 
 
