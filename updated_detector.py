@@ -66,7 +66,10 @@ def detection(cap):
         frame = cv2.resize(frame, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
 
         height, width = frame.shape[:2]
+        # Converting frame to grayscale
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        # Performing face detection, each face returns an array [x, y, width, height] of the bottom left corner
+        # coordinates of the face, in addition to the width and height.
         faces = face_cascade.detectMultiScale(frame,
                                               scaleFactor=1.1,
                                               minNeighbors=5,

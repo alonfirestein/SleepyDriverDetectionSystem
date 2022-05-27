@@ -1,4 +1,3 @@
-from camera import start_camera, detect_eyes
 from updated_detector import start_camera, detection
 from eye_detection import eye_aspect_ratio
 
