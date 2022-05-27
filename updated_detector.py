@@ -27,7 +27,7 @@ path = os.getcwd()
 
 
 # Global variables
-open_camera = True
+camera_open = True
 ALARM_ON = False
 closed_eyes_threshold = 5
 count, drowsiness_score, alarm_activated_counter = 0, 0, 0
@@ -56,11 +56,11 @@ def update_database(file_path, columns, data):
 
 
 def detection(cap):
-    global open_camera, ALARM_ON, drowsiness_score, count, right_eye_counter,\
+    global camera_open, ALARM_ON, drowsiness_score, count, right_eye_counter,\
            left_eye_counter, alarm_activated_counter
     started, timer = datetime.now().strftime('%Y-%m-%d %H:%M:%S'), time.time()
 
-    while True:
+    while camera_open:
         right_eye_prediction, left_eye_prediction = [99], [99]
         ret, frame = cap.read()
         frame = cv2.resize(frame, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
@@ -169,7 +169,6 @@ def detection(cap):
         cv2.imshow('Drowsiness Detector', frame)
         k = cv2.waitKey(30) & 0xff
         if k == 27:
-            open_camera = False
             break
 
     cap.release()
@@ -201,6 +200,7 @@ def detection(cap):
     for col, val in zip(columns, data):
         print(f"{col}: {val}")
     update_database("drowsiness_detection_data.csv", columns, data)
+    camera_open = False
 
 
 # Put text on image when an alarm is playing to wake up the driver
