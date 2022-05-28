@@ -155,13 +155,13 @@ def detection(cap):
         # If we detect that the driver is sleepy, we play the alarm to wake them up
         if drowsiness_score >= closed_eyes_threshold:
             alarm_activated_counter += 1
-            # Capturing a photo of the sleepy driver as proof of their drowsiness
-            if not captured_photo:
-                cv2.imwrite(os.path.join(path, f'images/sleeping_driver-{started}.jpg'), frame)
-                captured_photo = True
             try:
                 playsound.playsound("alarms/alarm_0.25.wav")
                 put_alert_text(frame)
+                # Capturing a photo of the sleepy driver as proof of their drowsiness
+                if not captured_photo:
+                    cv2.imwrite(os.path.join(path, f'images/sleeping_driver-{started}.jpg'), frame)
+                    captured_photo = True
 
             except Exception as e:
                 traceback.print_exc()
