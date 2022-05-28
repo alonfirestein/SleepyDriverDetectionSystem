@@ -29,6 +29,7 @@ path = os.getcwd()
 # Global variables
 camera_open = True
 ALARM_ON = False
+captured_photo = False
 closed_eyes_threshold = 5
 count, drowsiness_score, alarm_activated_counter = 0, 0, 0
 right_eye_counter = {"right_eye_open": 0, "right_eye_closed": 0}
@@ -57,7 +58,7 @@ def update_database(file_path, columns, data):
 
 def detection(cap):
     global camera_open, ALARM_ON, drowsiness_score, count, right_eye_counter,\
-           left_eye_counter, alarm_activated_counter
+           left_eye_counter, alarm_activated_counter, captured_photo
     started, timer = datetime.now().strftime('%Y-%m-%d %H:%M:%S'), time.time()
 
     while camera_open:
@@ -152,12 +153,11 @@ def detection(cap):
         cv2.putText(frame, 'Drowsiness Score:' + str(drowsiness_score), (175, height - 20), font, 1, (255, 255, 255), 1, cv2.LINE_AA)
 
         # If we detect that the driver is sleepy, we play the alarm to wake them up
-        captured_photo = False
         if drowsiness_score >= closed_eyes_threshold:
             alarm_activated_counter += 1
             # Capturing a photo of the sleepy driver as proof of their drowsiness
             if not captured_photo:
-                cv2.imwrite(os.path.join(path, 'sleeping_driver.jpg'), frame)
+                cv2.imwrite(os.path.join(path, f'images/sleeping_driver-{started}.jpg'), frame)
                 captured_photo = True
             try:
                 playsound.playsound("alarms/alarm_0.25.wav")
