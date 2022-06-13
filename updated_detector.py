@@ -163,7 +163,7 @@ def update_drowsiness_score(frame, right_eye_prediction, left_eye_prediction, he
 def put_alert_text(frame):
     """
     Put text on image when an alarm is playing to wake up the driver
-    :param img: the image to be processed and where the text will be put
+    :param frame: the frame to be processed and where the text will be put
     :return:
     """
     text = 'WAKE UP!'
