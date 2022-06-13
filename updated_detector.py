@@ -160,7 +160,7 @@ def update_drowsiness_score(frame, right_eye_prediction, left_eye_prediction, he
         drowsiness_score = 0
 
 
-def put_alert_text(img):
+def put_alert_text(frame):
     """
     Put text on image when an alarm is playing to wake up the driver
     :param img: the image to be processed and where the text will be put
@@ -172,9 +172,9 @@ def put_alert_text(img):
     fontColor = (0, 0, 255)
     lineType = 2
     text_width, text_height = cv2.getTextSize(text, font, fontScale, lineType)[0]
-    CenterCoordinates = (int(img.shape[1] / 2) - int(text_width / 2), int(img.shape[0] / 2) - int(text_height / 2))
+    CenterCoordinates = (int(frame.shape[1] / 2) - int(text_width / 2), int(frame.shape[0] / 2) - int(text_height / 2))
 
-    return cv2.putText(img, text, CenterCoordinates, font, fontScale, fontColor, lineType)
+    return cv2.putText(frame, text, CenterCoordinates, font, fontScale, fontColor, lineType)
 
 
 def detection(cap):
