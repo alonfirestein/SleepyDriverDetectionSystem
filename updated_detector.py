@@ -160,9 +160,12 @@ def update_drowsiness_score(frame, right_eye_prediction, left_eye_prediction, he
         drowsiness_score = 0
 
 
-# Put text on image when an alarm is playing to wake up the driver
 def put_alert_text(img):
-    # Text details
+    """
+    Put text on image when an alarm is playing to wake up the driver
+    :param img: the image to be processed and where the text will be put
+    :return:
+    """
     text = 'WAKE UP!'
     font = cv2.FONT_HERSHEY_SIMPLEX
     fontScale = 1
