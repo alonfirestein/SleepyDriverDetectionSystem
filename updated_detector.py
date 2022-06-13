@@ -160,6 +160,20 @@ def update_drowsiness_score(frame, right_eye_prediction, left_eye_prediction, he
         drowsiness_score = 0
 
 
+# Put text on image when an alarm is playing to wake up the driver
+def put_alert_text(img):
+    # Text details
+    text = 'WAKE UP!'
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    fontScale = 1
+    fontColor = (0, 0, 255)
+    lineType = 2
+    text_width, text_height = cv2.getTextSize(text, font, fontScale, lineType)[0]
+    CenterCoordinates = (int(img.shape[1] / 2) - int(text_width / 2), int(img.shape[0] / 2) - int(text_height / 2))
+
+    return cv2.putText(img, text, CenterCoordinates, font, fontScale, fontColor, lineType)
+
+
 def detection(cap):
     """
     The main function of the program. It is responsible for detecting the drowsiness of the driver.
@@ -243,19 +257,5 @@ def detection(cap):
     # Updating database with all the information about the last session
     update_database("drowsiness_detection_data.csv", started, ended, timer)
     camera_open = False
-
-
-# Put text on image when an alarm is playing to wake up the driver
-def put_alert_text(img):
-    # Text details
-    text = 'WAKE UP!'
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    fontScale = 1
-    fontColor = (0, 0, 255)
-    lineType = 2
-    text_width, text_height = cv2.getTextSize(text, font, fontScale, lineType)[0]
-    CenterCoordinates = (int(img.shape[1] / 2) - int(text_width / 2), int(img.shape[0] / 2) - int(text_height / 2))
-
-    return cv2.putText(img, text, CenterCoordinates, font, fontScale, fontColor, lineType)
 
 
