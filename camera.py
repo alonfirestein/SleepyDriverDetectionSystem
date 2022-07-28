@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import cv2
-import playsound
+
 
 # Importing haar_cascade_files for face and eye classifier
 # https://docs.opencv.org/3.4/db/d28/tutorial_cascade_classifier.html
@@ -78,7 +78,7 @@ def detect_eyes(cap):
                 # Boolean flag to play alarm, sound will play until driver is awake for several consecutive seconds
                 # meaning until the opened_eyes_counter meets its threshold to turn off the alarm
                 if ALARM_ON:
-                    playsound.playsound("alarms/alarm_0.25.wav")
+                    # playsound.playsound("alarms/alarm_0.25.wav")
                     put_alert_text(img)
 
                 frame_tmp = cv2.resize(frame_tmp, (600, 600), interpolation=cv2.INTER_LINEAR)
