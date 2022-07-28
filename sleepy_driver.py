@@ -3,18 +3,14 @@ import cv2
 from detection import Predictors
 from UI import UI_controller as ui
 from keras.models import load_model
+import playsound
 import traceback
 import time
 from output_data import data_save
 
 
-
-
-
-
 labels = ['Closed', 'Open']
 model = load_model('models/drowsiness_detector_model.h5')
-
 
 
 # Global variables
@@ -38,10 +34,6 @@ def start_camera(URL):
     if not cap.isOpened():
         raise IOError("Cannot open camera")
     return cap
-
-
-
-
 
 
 def update_drowsiness_score(frame, right_eye_prediction, left_eye_prediction, height):
@@ -73,8 +65,6 @@ def update_drowsiness_score(frame, right_eye_prediction, left_eye_prediction, he
 
     if drowsiness_score < 0:
         drowsiness_score = 0
-
-
 
 
 def run(cap):
@@ -121,7 +111,7 @@ def run(cap):
         if drowsiness_score >= closed_eyes_threshold:
             alarm_activated_counter += 1
             try:
-                # playsound.playsound("alarms/alarm_0.25.wav")
+                playsound.playsound("alarms/alarm_0.25.wav")
                 ui.put_alert_text(frame)
                 # Capturing a photo of the sleepy driver as proof of their drowsiness
                 if not captured_photo:
@@ -137,8 +127,6 @@ def run(cap):
 
     cap.release()
     cv2.destroyAllWindows()
-
-
 
     ended = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     # Updating database with all the information about the last session

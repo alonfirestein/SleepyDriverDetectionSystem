@@ -1,9 +1,13 @@
-
+import time
 from datetime import datetime
 import cv2
 import os
 import pandas as pd
+from csv import writer
+
 path = os.getcwd()
+
+
 def save_drowsiness_img(frame):
         current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         cv2.imwrite(os.path.join(path, f"images/sleeping_driver-{current_time}.jpg"), frame)

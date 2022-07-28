@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import sleepy_driver as ud
+
 face_cascade = cv2.CascadeClassifier('cascade_files/haarcascade_frontalface_default.xml')
 eye_cascade = cv2.CascadeClassifier('cascade_files/haarcascade_eye.xml')
 r_eye_cascade = cv2.CascadeClassifier('cascade_files/haarcascade_righteye_2splits.xml')
@@ -10,21 +11,23 @@ open_closed = cv2.CascadeClassifier('cascade_files/haarcascade_openclosed_eyes.x
 
 def get_face(frame):
     return face_cascade.detectMultiScale(frame,
-                                  scaleFactor=1.1,
-                                  minNeighbors=5,
-                                  minSize=(30, 30))
+                                         scaleFactor=1.1,
+                                         minNeighbors=5,
+                                         minSize=(30, 30))
+
 
 def get_eyes2(frame):
     return open_closed.detectMultiScale(frame,
-                                 scaleFactor=1.1,
-                                 minNeighbors=5,
-                                 minSize=(30, 30))
+                                        scaleFactor=1.1,
+                                        minNeighbors=5,
+                                        minSize=(30, 30))
+
 
 def get_eyes(gray):
-    return l_eye_cascade.detectMultiScale(gray),r_eye_cascade.detectMultiScale(gray)
+    return l_eye_cascade.detectMultiScale(gray), r_eye_cascade.detectMultiScale(gray)
 
 
-def eye_prediction(frame,model, eye, prediction_list, eye_side):
+def eye_prediction(frame, model, eye, prediction_list, eye_side):
     """
     Predict the eye state of the face (open or closed) using my trained CNN model
     :param frame: the frame to be processed
