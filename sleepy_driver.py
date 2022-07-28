@@ -83,7 +83,6 @@ def run(cap):
         frame = cv2.resize(frame, None, fx=0.8, fy=0.8, interpolation=cv2.INTER_AREA)
         height, width = frame.shape[:2]
 
-
         # Converting frame to grayscale
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         # Performing face detection, each face returns an array [x, y, width, height] of the bottom left corner
@@ -98,7 +97,6 @@ def run(cap):
 
         # Draw red rectangles around detected eyes
         ui.draw_eyes(frame,eyes)
-
 
         # Predict the eye state of the face (open or closed)
         left_eye_prediction = Predictors.eye_prediction(frame, model, left_eye, left_eye_prediction, eye_side="left")
